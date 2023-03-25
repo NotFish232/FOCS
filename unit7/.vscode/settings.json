@@ -1,0 +1,7 @@
+{
+    "java.project.referencedLibraries": [
+        "karel2_c.jar",
+        "xerceslmpl.jar",
+        "mapBuilder.jar"
+    ]
+}

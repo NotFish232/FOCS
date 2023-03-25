@@ -1,0 +1,14 @@
+mem  locn label     op      addr      comments
+C00C 000  jmp       start   skip      around the variables
+0000 001  one       dw      -         define variable `one`
+0000 002  two       dw      -         define variable `two`
+0000 003  three     dw      -         define variable `three`
+0000 004  four      dw      -         define variable `four`
+0000 005  five      dw      -         define variable `five`
+0000 006  six       dw      -         define variable `six`
+0000 007  seven     dw      -         define variable `seven`
+0000 008  eight     dw      -         define variable `eight`
+0000 009  nine      dw      -         define variable `nine`
+0000 00A  ten       dw      -         define variable `ten`
+0001 00B  oneVal    dw      -         
+7001 00C  -         and     one       logical and with `one`
