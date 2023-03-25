@@ -1,0 +1,141 @@
+<html>
+
+<head>
+    <title>
+        blue-2
+    </title>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"
+        integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+
+    <script>
+        const SWITCH = { 0: 2, 2: 0, 1: 3, 3: 1 };
+        const SVGNS = "http://www.w3.org/2000/svg";
+        const DIRECTIONS = { LEFT: 0, UP: 1, RIGHT: 2, DOWN: 3 };
+        const FIRE_SPEED = 25;
+        const FRAME = 10;
+        const ENEMY_SPEED = { BLITZ: 4, FAST: 3, MEDIUM: 2, SLOW: 1 };
+        const SHIP_SPEED = 1;
+        const HORIZONTAL_MULTIPLYER = 1.5;
+        const SPAWNRATE = 1000;
+        const SPECS = {
+            "ship": { x: 40, y: 70, href: "./ship.png" },
+            "rocket": { x: 15, y: 30, href: "./projectile.png" },
+            "enemy": { x: 50, y: 20, href: "./ufo.png" },
+            "boss": { x: 100, y: 50, href: "./urmother" }
+        }
+        const SHIP_SIZE = { x: 40, y: 70 };
+        const ROCKET_SIZE = { x: 15, y: 30 };
+        const ENEMY_SIZE = { x: 50, y: 20 };
+        let animate;
+        let spawner;
+        let height;
+        let width;
+        let freq = FIRE_SPEED;
+        let canvas;
+        let ship = { x: 230, y: 400 };
+        let rockets = [];
+        let map = new Map();
+        let enemies = [];
+        onkeydown = onkeyup = (e) => {
+                map.set(e.code, e.type == "keydown");
+            }
+        $(document).ready(() => {
+            canvas = $("svg")[0];
+            height = canvas.getBoundingClientRect().height;
+            width = canvas.getBoundingClientRect().width;
+            spawner = setInterval(makeEnemy, SPAWNRATE);
+            animate = setInterval(run, FRAME);
+
+        });
+        function run() {
+            keyInput();
+            freq = freq == 0 ? 0 : freq - 1;
+            $("#ship").remove();
+            canvas.appendChild(make("ship", ship));
+            rockets.forEach((rocket, index) => {
+                if (!rocket) return;
+                $(`#rocket${index}`).remove();
+                rocket.y -= 5;
+                canvas.appendChild(make("rocket", rocket, index));
+                if (rocket.y < 0) {
+                    rockets[index] = null;
+                    $(`#rocket${index}`).remove();
+                }
+                enemies.forEach((enemy, i) => {
+                    if (enemy) {
+                        if (!(rocket.y > enemy.y + ENEMY_SIZE.y || rocket.x + ROCKET_SIZE.x < enemy.x || rocket.y + ROCKET_SIZE.y < enemy.y || rocket.x > enemy.x + ENEMY_SIZE.x)) {
+                            enemies[i] = null;
+                            $(`#enemy${i}`).remove();
+                            rockets[index] = null;
+                            $(`#rocket${index}`).remove();
+                            $("#score").html(parseInt($("#score").html()) + 1);
+                        }
+                    }
+                })
+
+            });
+            if (rockets.filter(rocket => rocket != null).length == 0) rockets = [];
+            enemies.forEach((enemy, index) => {
+                if (!enemy) return;
+                $(`#enemy${index}`).remove();
+                if (enemy.x < 0 || enemy.x + 50 > width || enemy.y < 0 || enemy.y + 20 > height) enemy.direction = SWITCH[enemy.direction];
+                enemy.x = enemy.direction == DIRECTIONS.LEFT ? enemy.x - enemy.speed : enemy.direction == DIRECTIONS.RIGHT ? enemy.x + enemy.speed : enemy.x;
+                enemy.y = enemy.direction == DIRECTIONS.UP ? enemy.y - enemy.speed : enemy.direction == DIRECTIONS.DOWN ? enemy.y + enemy.speed : enemy.y;
+                canvas.appendChild(make("enemy", enemy, index));
+            });
+
+            if (enemies.filter(enemy => enemy != null).length == 0) enemies = [];
+        }
+        function keyInput() {
+            if (map.get("ArrowLeft") || map.get("KeyA")) { //left 
+                ship.x = ship.x > 0 ? ship.x - SHIP_SPEED * HORIZONTAL_MULTIPLYER : ship.x;
+            }
+            if (map.get("ArrowRight") || map.get("KeyD")) { //right
+                ship.x = ship.x + 40 < width ? ship.x + SHIP_SPEED * HORIZONTAL_MULTIPLYER : ship.x;
+            }
+            if (map.get("ArrowUp") || map.get("KeyW")) { //up
+                ship.y = ship.y > -20 ? ship.y - SHIP_SPEED : ship.y;
+            }
+            if (map.get("ArrowDown") || map.get("KeyS")) { //down
+                ship.y = ship.y + 60 < height ? ship.y + SHIP_SPEED : ship.y
+            }
+            if (map.get("Space")) { //space
+                if (freq == 0) {
+                    freq = FIRE_SPEED;
+                    rockets.push({ x: ship.x + 12, y: ship.y });
+                }
+            }
+            if (map.get("Escape")) {
+                clearInterval(spawner);
+                spawner = null;
+            }
+            if (map.get("Enter")) {
+                spawner = spawner == null ? setInterval(makeEnemy, SPAWNRATE) : spawner;
+            }
+        }
+        function makeEnemy() {
+            enemies.push({ x: Math.floor(Math.random() * 450), y: Math.floor(Math.random() * 300), direction: Math.floor(Math.random() * 4), speed: 1 + Math.floor(Math.random() * 4) })
+        }
+        function make(type, object, index) {
+            var img = document.createElementNS(SVGNS, "image");
+            img.style.setProperty("x", `${object.x}`);
+            img.style.setProperty("y", `${object.y}`);
+            img.style.setProperty("width", SPECS[type].x);
+            img.style.setProperty("height", SPECS[type].y);
+            img.setAttribute("href", SPECS[type].href);
+            img.setAttribute("id", type + (index != undefined ? index.toString() : ""));
+            return img;
+        }
+    </script>
+
+    <head>
+
+    <body style="text-align:center;margin:5px">
+        <svg style="width:500px;height:500px;border: 1px solid black;background-image:url(./background.png)">
+        </svg>
+        <div id="score">0</div>
+    </body>
+
+
+</html>
